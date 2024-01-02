@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import seaborn as sns
 
 
 def url_to_filepaths(url):
@@ -63,7 +64,7 @@ def write_stats(df, url):
 def make_histogram(df, url):
     print("Making histogram...")
 
-    plt.hist(df['baseSalaryNumber'], bins=25)
+    sns.histplot(df['baseSalaryNumber'], bins=25)
     plt.title(url.split("https://")[1])
     plt.xlabel("Salary")
     plt.ylabel("Frequency")
