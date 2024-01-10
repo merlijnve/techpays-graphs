@@ -51,27 +51,80 @@ def load_and_parse(url):
     return json_data
 
 
-def write_stats(df, url):
+def basesalary_stats(df, url):
     dir_path, file_name = url_to_filepaths(url)
 
     print("Writing stats...")
-    df.describe().to_csv(dir_path+"/"+file_name+".csv")
-    with open(dir_path+"/"+file_name+".txt", "w") as f:
+    df.describe().to_csv(dir_path+"/" + "baseSalary-" + file_name+".csv")
+    with open(dir_path+"/" + "baseSalary-" + file_name+".txt", "w") as f:
         f.write(df.describe().to_string())
-    print("Done")
 
 
-def make_histogram(df, url):
+def basesalary_histogram(df, url):
+    """
+    Plot a histogram of base salaries.
+    """
     print("Making histogram...")
 
     sns.histplot(df['baseSalaryNumber'], bins=25)
-    plt.title(url.split("https://")[1])
+    plt.title(url.split("europe/")[1])
     plt.xlabel("Salary")
     plt.ylabel("Frequency")
 
     dir_path, file_name = url_to_filepaths(url)
-    plt.savefig(dir_path+"/"+file_name)
-    print("Done")
+    plt.savefig(dir_path+"/" + "baseSalary-" + file_name)
+
+    basesalary_stats(df, url)
+
+
+def write_best_paying_companies(df, url):
+    """
+    Write sorted best paying companies to file.
+    """
+    dir_path, file_name = url_to_filepaths(url)
+
+    stats = df.groupby(['companyName'])[
+        'baseSalaryNumber'].agg(['mean', 'median', 'count']).sort_values(by=['median'], ascending=False)
+    stats.to_csv(dir_path+"/" + "bestPayingCompanies-" +
+                 file_name+".csv")
+
+    with open(dir_path+"/" + "bestPayingCompanies-" + file_name + ".txt", "w") as f:
+        f.write(stats.to_string())
+
+
+def best_paying_companies(df, url, min_entries=10, n_companies=40):
+    """
+    Plot a boxplot of the best paying companies.
+    """
+    print("Best paying companies...")
+    dir_path, file_name = url_to_filepaths(url)
+
+    df = df[df.groupby('companyName')[
+        'companyName'].transform('count') >= min_entries]
+
+    write_best_paying_companies(df, url)
+
+    median_salaries = df.groupby(
+        'companyName')['baseSalaryNumber'].median()
+    top_companies = median_salaries.sort_values(
+        ascending=False).head(n_companies).index
+
+    filtered_df = df[df['companyName'].isin(top_companies)]
+    order = filtered_df.groupby('companyName')[
+        'baseSalaryNumber'].median().sort_values(ascending=False).index
+
+    plt.figure(figsize=(12, 8))
+    plt.subplots_adjust(left=0.2)
+    sns.boxplot(
+        filtered_df, x="baseSalaryNumber", y="companyName",
+        width=.5, palette="vlag", order=order
+    )
+    sns.stripplot(filtered_df, x="baseSalaryNumber",
+                  y="companyName", size=2, color=".3")
+    plt.title(" Best paying companies in " +
+              url.split("europe/")[1] + " (sorted by median, minimum of %d entries per company)" % min_entries)
+    plt.savefig(dir_path+"/" + "bestPayingCompanies-" + file_name)
+    plt.show()
 
 
 def main():
@@ -79,12 +132,11 @@ def main():
 
     print("Downloading...")
     compensation_list = load_and_parse(url)
-    print("Done")
 
     df = pd.DataFrame(compensation_list)
 
-    make_histogram(df, url)
-    write_stats(df, url)
+    basesalary_histogram(df, url)
+    best_paying_companies(df, url, min_entries=10)
 
 
 if __name__ == '__main__':
