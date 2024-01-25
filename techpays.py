@@ -220,7 +220,7 @@ def init_sidebar():
         st.title("Techpays Explorer")
         st.caption(
             "Data from [Techpays.eu](https://techpays.eu) | Built by [Merlijn](https://linkedin.com/in/merlijnvanengelen)")
-        st.caption("Scroll down for more settings")
+        st.caption("Scroll down for more settings | Drag to make sidebar wider")
 
 
 def switch_first_run():
