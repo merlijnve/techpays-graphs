@@ -150,7 +150,7 @@ def st_best_paying_companies(df, filters, compensation_type):
         st.header("Boxplot settings")
         sort_highest = st.toggle('Sort by highest paying', value=True)
         n_companies = st.slider('Number of companies', 5, 150, 20, 5)
-        min_entries = st.slider('Minimum entries', 2, 50, 10, 2)
+        min_entries = st.slider('Minimum entries', 1, 50, 10, 1)
 
     df = df[df.groupby('companyName')[
         'companyName'].transform('count') >= min_entries]
